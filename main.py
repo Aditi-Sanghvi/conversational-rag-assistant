@@ -1,15 +1,13 @@
 import ollama
 
-context = """
-TCP is a connection-oriented transport-layer protocol.
-It provides reliable data delivery using acknowledgements,
-sequence numbers, and retransmission of lost packets.
-"""
+# Load the document
+with open("sample.txt", "r", encoding="utf-8") as file:
+    context = file.read()
 
 question = "Why is TCP reliable?"
 
 prompt = f"""
-Answer the question using only the information provided below.
+Answer the question using only the information provided in the context.
 
 Context:
 {context}

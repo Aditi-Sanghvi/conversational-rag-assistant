@@ -1,0 +1,4 @@
+TCP is a connection-oriented transport layer protocol.
+It provides reliable communication between devices.
+TCP uses acknowledgements, sequence numbers and retransmission
+to ensure that data is delivered correctly.
