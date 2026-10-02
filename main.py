@@ -1,29 +1,19 @@
-import ollama
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Load the document
 with open("sample.txt", "r", encoding="utf-8") as file:
-    context = file.read()
+    text = file.read()
 
-question = "Why is TCP reliable?"
-
-prompt = f"""
-Answer the question using only the information provided in the context.
-
-Context:
-{context}
-
-Question:
-{question}
-"""
-
-response = ollama.chat(
-    model="qwen2.5:3b",
-    messages=[
-        {
-            "role": "user",
-            "content": prompt
-        }
-    ]
+# Create text splitter
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=200,
+    chunk_overlap=40
 )
 
-print(response["message"]["content"])
+# Split document
+chunks = splitter.split_text(text)
+
+# Display chunks
+for i, chunk in enumerate(chunks):
+    print(f"\n--- Chunk {i + 1} ---")
+    print(chunk)
