@@ -1,19 +1,13 @@
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+import ollama
 
-# Load the document
-with open("sample.txt", "r", encoding="utf-8") as file:
-    text = file.read()
+text = "TCP provides reliable communication using acknowledgements and retransmission."
 
-# Create text splitter
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=200,
-    chunk_overlap=40
+response = ollama.embed(
+    model="nomic-embed-text",
+    input=text
 )
 
-# Split document
-chunks = splitter.split_text(text)
+embedding = response["embeddings"][0]
 
-# Display chunks
-for i, chunk in enumerate(chunks):
-    print(f"\n--- Chunk {i + 1} ---")
-    print(chunk)
+print("Number of dimensions:", len(embedding))
+print("First 10 values:", embedding[:10])
