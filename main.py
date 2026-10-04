@@ -2,16 +2,21 @@ import ollama
 import chromadb
 
 
-# Create ChromaDB client
+# -----------------------------
+# 1. Create ChromaDB
+# -----------------------------
+
 client = chromadb.PersistentClient(path="./chroma_db")
 
-# Create/get collection
 collection = client.get_or_create_collection(
     name="documents"
 )
 
 
-# Function to generate embeddings using Ollama
+# -----------------------------
+# 2. Embedding function
+# -----------------------------
+
 def get_embedding(text):
     response = ollama.embed(
         model="nomic-embed-text",
@@ -21,7 +26,10 @@ def get_embedding(text):
     return response["embeddings"][0]
 
 
-# Our document chunks
+# -----------------------------
+# 3. Document chunks
+# -----------------------------
+
 chunks = [
     "TCP uses acknowledgements and retransmission to provide reliable delivery.",
     "HTTP is an application layer protocol used for communication on the web.",
@@ -29,35 +37,80 @@ chunks = [
 ]
 
 
-# Generate embeddings and store chunks
+# -----------------------------
+# 4. Store chunks
+# -----------------------------
+
 for i, chunk in enumerate(chunks):
 
     embedding = get_embedding(chunk)
 
-    collection.add(
+    collection.upsert(
         ids=[f"chunk_{i + 1}"],
         documents=[chunk],
         embeddings=[embedding]
     )
 
 
-print("Chunks stored in ChromaDB!")
+# -----------------------------
+# 5. User question
+# -----------------------------
+
+question = input("\nAsk a question: ")
 
 
-# Embed the user's question
-question = "How does TCP provide reliable communication?"
+# -----------------------------
+# 6. Retrieve relevant chunks
+# -----------------------------
 
 question_embedding = get_embedding(question)
 
-
-# Search ChromaDB
 results = collection.query(
     query_embeddings=[question_embedding],
     n_results=2
 )
 
+retrieved_chunks = results["documents"][0]
 
-print("\nRetrieved chunks:")
 
-for document in results["documents"][0]:
-    print("-", document)
+# -----------------------------
+# 7. Build context
+# -----------------------------
+
+context = "\n\n".join(retrieved_chunks)
+
+
+# -----------------------------
+# 8. Create prompt
+# -----------------------------
+
+prompt = f"""
+Answer the question using only the provided context.
+
+Context:
+{context}
+
+Question:
+{question}
+"""
+# -----------------------------
+# 9. Generate answer using Qwen
+# -----------------------------
+
+response = ollama.chat(
+    model="qwen2.5:3b",
+    messages=[
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ]
+)
+
+
+# -----------------------------
+# 10. Display answer
+# -----------------------------
+
+print("\nAnswer:")
+print(response["message"]["content"])
